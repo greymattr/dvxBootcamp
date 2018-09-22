@@ -30,7 +30,7 @@
 //#define DHTTYPE DHT22   // DHT 22  (AM2302), AM2321
 //#define DHTTYPE DHT21   // DHT 21 (AM2301)
 
-DHT_Unified dht(DHT11_PIN, DHTTYPE);
+DHT_Unified dht( DHT11_PIN, DHTTYPE );
 
 #define DEFAULT_DEVICE_NAME "ESP12E"
 
@@ -44,7 +44,7 @@ DHT_Unified dht(DHT11_PIN, DHTTYPE);
 #define OLED_RESET LED_BUILTIN
 
 static WiFiManager wifiManager;
-ESP8266WebServer server(80);
+ESP8266WebServer server( 80 );
 
 char dev_uuid[16];                // UUIDs in binary form are 16 bytes long
 char uuid_str[33];                // UUID as a string
@@ -55,7 +55,7 @@ static unsigned int cur_temp = 0;
 char twirler[] = { '/', '-', '\\', '|' };
 unsigned int twirl_counter = 0;
 
-Adafruit_SSD1306 display(OLED_RESET);
+Adafruit_SSD1306 display( OLED_RESET );
 
 #ifdef USE_MQTT
 // Update these with values suitable for your network.
@@ -64,61 +64,63 @@ const char* password = "........";
 const char* mqtt_server = "greysic.com";
 
 WiFiClient espClient;
-PubSubClient client(espClient);
+PubSubClient client( espClient );
 long lastMsg = 0;
 char msg[50];
 int value = 0;
 
-void mqtt_callback(char* topic, byte* payload, unsigned int length) {
+void mqtt_callback( char* topic, byte* payload, unsigned int length )
+{
   unsigned int i;
   char buf[64];
-  Serial.print("Message arrived [");
-  Serial.print(topic);
-  Serial.print("] ");
-  for (i = 0; i < length; i++) {
-    Serial.print((char)payload[i]);
+  Serial.print( "Message arrived [" );
+  Serial.print( topic );
+  Serial.print( "] " );
+  for ( i = 0; i < length; i++ ) {
+    Serial.print( ( char )payload[i] );
   }
   Serial.println();
 
-  if( strncmp((char *)payload, DEVICE_TYPE, strlen(DEVICE_TYPE)) == 0 ){
-    Serial.printf("recevied message for device type %s\n", DEVICE_TYPE);
-    memset(buf, 0, sizeof(buf));
+  if( strncmp( ( char * )payload, DEVICE_TYPE, strlen( DEVICE_TYPE ) ) == 0 ) {
+    Serial.printf( "recevied message for device type %s\n", DEVICE_TYPE );
+    memset( buf, 0, sizeof( buf ) );
     i = length - 32;
-    memcpy(buf, (char *)payload + i, 32);
-    Serial.printf("recevied message for uuid %s\n", buf);
-    if( strncmp(buf, uuid_str, 32) == 0 ) {
-      Serial.printf("DEVICE_TYPE & UUID match\n");
+    memcpy( buf, ( char * )payload + i, 32 );
+    Serial.printf( "recevied message for uuid %s\n", buf );
+    if( strncmp( buf, uuid_str, 32 ) == 0 ) {
+      Serial.printf( "DEVICE_TYPE & UUID match\n" );
       i = length - 43;
-      memset(buf, 0, sizeof(buf));
-      memcpy(buf, (char *)payload + i, 10);
-      if ( strncmp(buf, WiFi.hostname().c_str(), 10) == 0) {
-        Serial.printf("Message is for this unit %s\n", WiFi.hostname().c_str());
+      memset( buf, 0, sizeof( buf ) );
+      memcpy( buf, ( char * )payload + i, 10 );
+      if ( strncmp( buf, WiFi.hostname().c_str(), 10 ) == 0 ) {
+        Serial.printf( "Message is for this unit %s\n", WiFi.hostname().c_str() );
       } else {
-        Serial.printf("%s != %s",WiFi.hostname().c_str(), buf);
+        Serial.printf( "%s != %s",WiFi.hostname().c_str(), buf );
       }
     } else {
-      Serial.printf("UUID mismatch\n%s != %s\n", buf, uuid_str);
+      Serial.printf( "UUID mismatch\n%s != %s\n", buf, uuid_str );
     }
   }
 }
 
 
-void reconnect() {
+void reconnect()
+{
   // Loop until we're reconnected
-  while (!client.connected()) {
-    Serial.print("Attempting MQTT connection...");
+  while ( !client.connected() ) {
+    Serial.print( "Attempting MQTT connection..." );
     // Attempt to connect
     // if (client.connect("ESP8266Client")) {
-    if (client.connect(WiFi.hostname().c_str())) {
-      Serial.println("connected");
+    if ( client.connect( WiFi.hostname().c_str() ) ) {
+      Serial.println( "connected" );
       // ... and resubscribe
-      client.subscribe("espiot/cmd");
+      client.subscribe( "espiot/cmd" );
     } else {
-      Serial.print("failed, rc=");
-      Serial.print(client.state());
-      Serial.println(" try again in 5 seconds");
+      Serial.print( "failed, rc=" );
+      Serial.print( client.state() );
+      Serial.println( " try again in 5 seconds" );
       // Wait 5 seconds before retrying
-      delay(5000);
+      delay( 5000 );
     }
   }
 }
@@ -126,117 +128,127 @@ void reconnect() {
 
 
 // configModeCallback - gets called when WiFiManager enters configuration mode
-void configModeCallback ( WiFiManager *myWiFiManager ) {
+void configModeCallback ( WiFiManager *myWiFiManager )
+{
   display.clearDisplay();
-  display.setTextSize(0);
-  display.setTextColor(WHITE);
-  display.setCursor(0,0);
-  display.printf("-CONFIG MODE-");
-  display.setCursor(0,9);
-  display.setTextSize(0);
-  display.printf("SSID: %s", myWiFiManager->getConfigPortalSSID().c_str());
-  display.setCursor(0,18);
-  display.printf("  IP: 192.168.4.1");
+  display.setTextSize( 0 );
+  display.setTextColor( WHITE );
+  display.setCursor( 0,0 );
+  display.printf( "-CONFIG MODE-" );
+  display.setCursor( 0,9 );
+  display.setTextSize( 0 );
+  display.printf( "SSID: %s", myWiFiManager->getConfigPortalSSID().c_str() );
+  display.setCursor( 0,18 );
+  display.printf( "  IP: 192.168.4.1" );
   display.display();
 }
 
-void send_self_redirect( char *msg, int delay ) {
+void send_self_redirect( char *msg, int delay )
+{
   char buf[1024];
-  memset(buf, 0, sizeof(buf));
-  sprintf(buf, "<HTML><HEAD><meta http-equiv=\"refresh\" content=\"%i; URL='/'\"/></HEAD><BODY>%s</BODY></HTML>", delay, msg);
-  server.send(200, "text/html", buf);
+  memset( buf, 0, sizeof( buf ) );
+  sprintf( buf, "<HTML><HEAD><meta http-equiv=\"refresh\" content=\"%i; URL='/'\"/></HEAD><BODY>%s</BODY></HTML>", delay, msg );
+  server.send( 200, "text/html", buf );
 }
 
-void handle_root( ) {
+void handle_root( )
+{
   char buf[512];
-  memset(buf, 0, sizeof(buf));
-  sprintf(buf, "<HTML><HEAD></HEAD><BODY><h3>espiot SENSOR.TEMP device %s</h3> <br>Current temp: %d</BODY></HTML>\n\n", WiFi.hostname().c_str(), cur_temp);
-  server.send(200, "text/html", buf);
+  memset( buf, 0, sizeof( buf ) );
+  sprintf( buf, "<HTML><HEAD></HEAD><BODY><h3>espiot SENSOR.TEMP device %s</h3> <br>Current temp: %d</BODY></HTML>\n\n", WiFi.hostname().c_str(), cur_temp );
+  server.send( 200, "text/html", buf );
   return;
 }
 
-void handle_404( ) {
+void handle_404( )
+{
   String message = "File Not Found\n\n";
   message += "URI: ";
   message += server.uri();
   message += "\nMethod: ";
-  message += (server.method() == HTTP_GET)?"GET":"POST";
+  message += ( server.method() == HTTP_GET )?"GET":"POST";
   message += "\nArguments: ";
   message += server.args();
   message += "\n";
-  for (uint8_t i=0; i<server.args(); i++){
-    message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
+  for ( uint8_t i=0; i<server.args(); i++ ) {
+    message += " " + server.argName( i ) + ": " + server.arg( i ) + "\n";
   }
-  server.send(404, "text/plain", message);
+  server.send( 404, "text/plain", message );
   return;
 }
 
-void wifi_reset() {
+void wifi_reset()
+{
   display.clearDisplay();
-  display.setTextSize(0);
-  display.setTextColor(WHITE);
-  display.setCursor(0,0);
-  display.println("wifi factory reset");
+  display.setTextSize( 0 );
+  display.setTextColor( WHITE );
+  display.setCursor( 0,0 );
+  display.println( "wifi factory reset" );
   display.display();
-  delay(3000);
+  delay( 3000 );
   wifiManager.resetSettings();
-  display.setCursor(0,9);
-  display.println("reboot now");
+  display.setCursor( 0,9 );
+  display.println( "reboot now" );
   display.display();
   server.close();
   ESP.restart();
 }
 
 
-void setup() {
+void setup()
+{
 
-  Serial.begin(9600);
-  pinMode(RESET_PIN, INPUT_PULLUP);        // sets the D6 pin as input
-  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);  // initialize with the I2C addr 0x3C (for the 128x32)
+  Serial.begin( 9600 );
+  pinMode( RESET_PIN, INPUT_PULLUP );      // sets the D6 pin as input
+  display.begin( SSD1306_SWITCHCAPVCC, 0x3C ); // initialize with the I2C addr 0x3C (for the 128x32)
 
   // Clear the buffer.
   display.clearDisplay();
   display.display();
 
   // text display tests
-  display.setTextSize(0);
-  display.setTextColor(WHITE);
-  display.setCursor(0,0);
-  display.println("Starting...");
+  display.setTextSize( 0 );
+  display.setTextColor( WHITE );
+  display.setCursor( 0,0 );
+  display.println( "Starting..." );
   display.display();
-  WiFi.macAddress(( byte *)dev_mac);     // fill in the devices mac address
-  memset(dev_uuid, 0, sizeof(dev_uuid));  // create the device UUID
-  memcpy(dev_uuid, UUID_PREFIX, 7);
-  memcpy(dev_uuid+10, dev_mac, 6);
-  memset(uuid_str, 0, sizeof(uuid_str));
-  sprintf(uuid_str, "%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X", \
-  dev_uuid[0],dev_uuid[1],dev_uuid[2],dev_uuid[3],dev_uuid[4],dev_uuid[5],dev_uuid[6],dev_uuid[7],dev_uuid[8],dev_uuid[9],dev_uuid[10],dev_uuid[11],dev_uuid[12],dev_uuid[13],dev_uuid[14],dev_uuid[15]);
+  WiFi.macAddress( ( byte * )dev_mac );  // fill in the devices mac address
+  memset( dev_uuid, 0, sizeof( dev_uuid ) ); // create the device UUID
+  memcpy( dev_uuid, UUID_PREFIX, 7 );
+  memcpy( dev_uuid+10, dev_mac, 6 );
+  memset( uuid_str, 0, sizeof( uuid_str ) );
+  sprintf( uuid_str, "%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X", \
+           dev_uuid[0],dev_uuid[1],dev_uuid[2],dev_uuid[3],dev_uuid[4],dev_uuid[5],dev_uuid[6],dev_uuid[7],dev_uuid[8],dev_uuid[9],dev_uuid[10],dev_uuid[11],dev_uuid[12],dev_uuid[13],dev_uuid[14],dev_uuid[15] );
 }
 
-void update_screen( void ) {
+void update_screen( void )
+{
   display.clearDisplay();
-  display.setTextSize(1);
-  display.setTextColor(WHITE);
-  display.setCursor(0,0);
-  display.printf("SSID: %s\n\r", WiFi.SSID().c_str());
-  display.setCursor(0,9);
-  display.printf("  IP: ");
-  display.println(WiFi.localIP());
-  display.setCursor(0,18);
-  display.printf("NAME: ");
-  display.println(WiFi.hostname().c_str());
-  display.fillRect(100, 24, 30, 10, BLACK);
-  display.setCursor(100,24);
-  display.setTextColor(WHITE);
-  display.print(cur_temp);
-  display.setCursor(110, 0);
-  display.printf("%c", twirler[twirl_counter++]);
-  if(twirl_counter >= sizeof(twirler)) twirl_counter = 0;
+  display.setTextSize( 1 );
+  display.setTextColor( WHITE );
+  display.setCursor( 0,0 );
+  display.printf( "SSID: %s\n\r", WiFi.SSID().c_str() );
+  display.setCursor( 0,9 );
+  display.printf( "  IP: " );
+  display.println( WiFi.localIP() );
+  display.setCursor( 0,18 );
+  display.printf( "NAME: " );
+  display.println( WiFi.hostname().c_str() );
+  display.fillRect( 100, 24, 30, 10, BLACK );
+  display.setCursor( 100,24 );
+  display.setTextColor( WHITE );
+  display.print( cur_temp );
+  display.setCursor( 110, 0 );
+  display.printf( "%c", twirler[twirl_counter++] );
+  if( twirl_counter >= sizeof( twirler ) ) {
+    twirl_counter = 0;
+  }
   display.display();
-  delay(200);
+  delay( 200 );
 }
 
-void loop() {
+void loop()
+{
 
   char buf[128];
   unsigned int i = 0;
@@ -245,138 +257,138 @@ void loop() {
   sensors_event_t event;
 
 
-  memset(buf, 0, sizeof(buf));
-  sprintf(buf, "ESP_%02X%02X%02X", dev_mac[3], dev_mac[4], dev_mac[5] );
-  WiFi.hostname(buf);
+  memset( buf, 0, sizeof( buf ) );
+  sprintf( buf, "ESP_%02X%02X%02X", dev_mac[3], dev_mac[4], dev_mac[5] );
+  WiFi.hostname( buf );
 
   display.clearDisplay();
   display.display();
   display.clearDisplay();
-  display.setTextSize(0);
-  display.setTextColor(WHITE);
-  display.setCursor(0,0);
-  display.printf("starting AP...");
+  display.setTextSize( 0 );
+  display.setTextColor( WHITE );
+  display.setCursor( 0,0 );
+  display.printf( "starting AP..." );
   display.display();
-  display.setCursor(0,9);
-  display.printf("SSID: %s", buf);
+  display.setCursor( 0,9 );
+  display.printf( "SSID: %s", buf );
   display.display();
-  display.setCursor(0,19);
-  display.printf("  IP: 192.168.4.1");
+  display.setCursor( 0,19 );
+  display.printf( "  IP: 192.168.4.1" );
   display.display();
-  delay(1000);
-  wifiManager.setAPCallback(configModeCallback);
+  delay( 1000 );
+  wifiManager.setAPCallback( configModeCallback );
 
   dht.begin();
 
-  if (!wifiManager.autoConnect(buf)) {
+  if ( !wifiManager.autoConnect( buf ) ) {
     display.clearDisplay();
-    display.setCursor(0,0);
-    display.println("failed to connect and hit timeout");
+    display.setCursor( 0,0 );
+    display.println( "failed to connect and hit timeout" );
     display.display();
-    delay(10000);
+    delay( 10000 );
   }
   // if you get here the ESP unit has connected to the WiFi
 
 #ifdef USE_MQTT
-  client.setServer(mqtt_server, 1883);
-  client.setCallback(mqtt_callback);
-  if (!client.connected()) {
+  client.setServer( mqtt_server, 1883 );
+  client.setCallback( mqtt_callback );
+  if ( !client.connected() ) {
     reconnect();
   }
   client.loop();
 #endif
 
   // start the web server
-  server.on("/", handle_root);
-  server.onNotFound(handle_404);
+  server.on( "/", handle_root );
+  server.onNotFound( handle_404 );
   server.begin();
 
   display.clearDisplay();
   display.display();
-  display.setTextSize(1);
-  display.setTextColor(WHITE);
+  display.setTextSize( 1 );
+  display.setTextColor( WHITE );
 
-  display.setCursor(0,0);
-  display.printf("SSID: %s\n\r", WiFi.SSID().c_str());
+  display.setCursor( 0,0 );
+  display.printf( "SSID: %s\n\r", WiFi.SSID().c_str() );
 
-  display.setCursor(0,9);
-  display.printf("  IP: ");
-  display.println(WiFi.localIP());
+  display.setCursor( 0,9 );
+  display.printf( "  IP: " );
+  display.println( WiFi.localIP() );
 
-  display.setCursor(0,18);
-  display.printf("NAME: ");
-  display.println(WiFi.hostname().c_str());
+  display.setCursor( 0,18 );
+  display.printf( "NAME: " );
+  display.println( WiFi.hostname().c_str() );
 
   display.display();
 
-  while(1) {
-    delay(100);
+  while( 1 ) {
+    delay( 100 );
 #ifdef USE_MQTT
-      if (!client.connected()) {
-        reconnect();
-      }
-      client.loop();
+    if ( !client.connected() ) {
+      reconnect();
+    }
+    client.loop();
 #endif
     server.handleClient();
-    i = digitalRead(RESET_PIN);     // read the input pin
-    if ( i ==  LOW) {
-      display.fillRect(100, 24, 20, 8, BLACK);
+    i = digitalRead( RESET_PIN );   // read the input pin
+    if ( i ==  LOW ) {
+      display.fillRect( 100, 24, 20, 8, BLACK );
       display.display();
-      display.setCursor(100,24);
-      display.setTextColor(WHITE);
-      display.printf("%02d", reset_counter);
+      display.setCursor( 100,24 );
+      display.setTextColor( WHITE );
+      display.printf( "%02d", reset_counter );
       display.display();
       reset_counter--;
-      delay(1000);
+      delay( 1000 );
       last_temp = 0;   // this is needed to show the temp again after the button is pressed
     } else {
       reset_counter = RESET_TIME;
       //display.fillRect(100, 24, 20, 8, BLACK);
       //display.display();
     }
-    if( reset_counter <= 0 ){
+    if( reset_counter <= 0 ) {
       display.clearDisplay();
       display.display();
-      display.setTextSize(1);
-      display.setCursor(0,0);
-      display.printf("resetting unit now...");
+      display.setTextSize( 1 );
+      display.setCursor( 0,0 );
+      display.printf( "resetting unit now..." );
       display.display();
-      delay(3000);
+      delay( 3000 );
       reset_counter = RESET_TIME;
       wifi_reset();
     }
 
-    dht.temperature().getEvent(&event);
-    if (isnan(event.temperature)) {
+    dht.temperature().getEvent( &event );
+    if ( isnan( event.temperature ) ) {
 #if 0
       display.clearDisplay();
-      display.setTextSize(1);
-      display.setCursor(0,0);
-      display.printf("Error reading temperature!");
+      display.setTextSize( 1 );
+      display.setCursor( 0,0 );
+      display.printf( "Error reading temperature!" );
       display.display();
 #endif
-      delay(100);
+      delay( 100 );
     }
     if ( reset_counter == RESET_TIME ) {
       update_screen();
-      if ( ! isnan(event.temperature)) {
-        cur_temp = (int)round(1.8*event.temperature+32);
+      if ( ! isnan( event.temperature ) ) {
+        cur_temp = ( int )round( 1.8*event.temperature+32 );
         // cur_temp = (int)round(1.7*event.temperature+32);
         if( cur_temp != last_temp ) {
           // only update if there is a change in temperature
-          display.fillRect(100, 24, 30, 10, BLACK);
+          display.fillRect( 100, 24, 30, 10, BLACK );
           display.display();
-          display.setCursor(100,24);
-          display.setTextColor(WHITE);
-          display.print(cur_temp);
+          display.setCursor( 100,24 );
+          display.setTextColor( WHITE );
+          display.print( cur_temp );
           display.display();
-          delay(100);
+          delay( 100 );
           last_temp = cur_temp;
 #ifdef USE_MQTT
-          memset(buf, 0, sizeof(buf));
-          sprintf(buf, "%s,%d,f,%s,%s", DEVICE_TYPE, cur_temp, WiFi.hostname().c_str(), uuid_str );
-  //          sprintf(buf, "%d", cur_temp);
-          client.publish("espiot", buf);
+          memset( buf, 0, sizeof( buf ) );
+          sprintf( buf, "%s,%d,f,%s,%s", DEVICE_TYPE, cur_temp, WiFi.hostname().c_str(), uuid_str );
+          //          sprintf(buf, "%d", cur_temp);
+          client.publish( "espiot", buf );
 #endif
         }
       }
