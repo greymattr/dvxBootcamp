@@ -1,7 +1,7 @@
 /* Copyright (C) Matthew Fatheree - All Rights Reserved
  * Unauthorized copying of this file, via any medium is strictly prohibited
  * Proprietary and confidential.
- * Written by Matthew Fatheree <greymattr@gmail.com>, 2018
+ * Written by Matthew Fatheree <matthewfatheree@gmail.com>, 2018
  */
 
 
