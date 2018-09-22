@@ -21,7 +21,7 @@
 void hello_world( void )
 {
   printf( "Hello world!\n\r" );
-  return
+  return;
 }
 
 /* basic for loop count to 10 */
