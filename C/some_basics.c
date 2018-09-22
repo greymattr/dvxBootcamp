@@ -10,11 +10,11 @@
 // '/* ... */' and '//' style
 
 /* some examples of how to use #define */
-#define 	DAYS_IN_WEEK			7
-#define   MONTHS_IN_YEAR		12
-#define		DAYS_IN_YEAR			365
-#define		HOURS_IN_DAY			24
-#define   ZERO							0
+#define   DAYS_IN_WEEK      7
+#define   MONTHS_IN_YEAR    12
+#define   DAYS_IN_YEAR      365
+#define   HOURS_IN_DAY      24
+#define   ZERO              0
 
 
 /* basic example hello world function */
