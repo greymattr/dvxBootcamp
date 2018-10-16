@@ -23,6 +23,7 @@
  */
 
 #include <stdlib.h>				/* always include the standard library */
+#include <stdio.h>				/* for printf */
 
 //#include <fake_comment_header.h>  // in C there are two types of comments
 // '/* ... */' and '//' style
@@ -47,7 +48,7 @@ void basic_for_loop( void )
 {
   int i;
   printf( "basic_for_loop - looping 10 times\n\r" );
-  for( i = 0, i <= 10, i++ ) {
+  for( i = 0; i <= 10; i++ ) {
     printf( "loop #%i\n\r", i );
   }
   return;
@@ -59,7 +60,7 @@ void for_loop_with_param( int count )
 {
   int i;
   printf( "for_loop_with_param - looping %d times\n\r", count );
-  for( i = 0, i <= count, i++ ) {
+  for( i = 0; i <= count; i++ ) {
     printf( "loop #%i\n\r", i );
   }
   return;
